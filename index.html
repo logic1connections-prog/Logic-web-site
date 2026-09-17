@@ -1224,9 +1224,10 @@
 
 <section class="relative z-10 px-5 pb-24 max-w-4xl mx-auto scroll-fade">
   <h2 class="font-display text-2xl font-bold mb-6 text-center">Bekijk het in actie</h2>
-  <div class="glass-card rounded-3xl aspect-video flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/10">
-    <i data-lucide="clapperboard" class="w-10 h-10 text-gray-500"></i>
-    <p class="text-sm text-gray-500 font-light">Video volgt binnenkort</p>
+  <div class="glass-card rounded-3xl overflow-hidden">
+    <video controls preload="metadata" class="w-full aspect-video bg-black">
+      <source src="videos/madness-en-vrienden.mp4" type="video/mp4">
+    </video>
   </div>
 </section>
 
