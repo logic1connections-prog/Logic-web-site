@@ -3,11 +3,13 @@
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
     { "src": "images/**", "use": "@vercel/static" },
-    { "src": "videos/**", "use": "@vercel/static" }
+    { "src": "videos/**", "use": "@vercel/static" },
+    { "src": "apps/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/images/(.*)", "dest": "/images/$1" },
     { "src": "/videos/(.*)", "dest": "/videos/$1" },
+    { "src": "/apps/(.*)", "dest": "/apps/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

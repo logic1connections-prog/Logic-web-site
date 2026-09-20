@@ -133,11 +133,158 @@
     backdrop-filter: blur(3px);
     background: rgba(4,3,12,0.55);
   }
+
+  /* ══════════════════════════════════════════════════════
+     V2 — LICHT, DIEPTE & 3D-SCROLL
+     Neon blijft accent. De rest blijft strak en clean.
+     ══════════════════════════════════════════════════════ */
+
+  :root{
+    --neon-purple: #B100FF;
+    --neon-pink:   #FF2EB3;
+    --neon-blue:   #00AFFF;
+    --line:        rgba(255,255,255,0.10);
+    --line-strong: rgba(255,255,255,0.16);
+  }
+
+  /* zachte lichtvelden achter alles — traag, subtiel, goedkoop */
+  .light-field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .bloom { position: absolute; border-radius: 50%; filter: blur(90px); will-change: transform; }
+  .bloom-a { width: 46vw; height: 46vw; left: -12vw; top: -10vw;
+             background: radial-gradient(circle, var(--neon-blue), transparent 62%); opacity: .22; }
+  .bloom-b { width: 38vw; height: 38vw; right: -10vw; top: 28vh;
+             background: radial-gradient(circle, var(--neon-pink), transparent 62%); opacity: .16; }
+  .bloom-c { width: 54vw; height: 54vw; left: 16vw; bottom: -22vw;
+             background: radial-gradient(circle, var(--neon-purple), transparent 64%); opacity: .14; }
+
+  /* scroll-voortgangsbalk in de navbar */
+  #scrollProgress {
+    position: fixed; top: 0; left: 0; height: 2px; width: 0%; z-index: 60;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-pink));
+    box-shadow: 0 0 12px rgba(0,175,255,.55);
+    transition: width .1s linear;
+  }
+
+  /* ─── 3D-scroll ─── */
+  .scene { perspective: 1200px; perspective-origin: 50% 40%; }
+
+  /* diepte-lagen: bewegen trager/sneller dan de scroll */
+  .depth { will-change: transform; transform: translate3d(0, var(--dy, 0px), 0); }
+
+  /* kaarten die uit het scherm kantelen bij het binnenscrollen */
+  .js-3d .tilt {
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+    transform: perspective(1100px) rotateX(var(--rx, 7deg)) translateY(var(--ty, 26px)) translateZ(var(--tz, -40px));
+    opacity: var(--op, 0);
+    transition: transform .9s cubic-bezier(.16,.84,.32,1), opacity .7s ease;
+  }
+  .js-3d .tilt.in-view { --rx: 0deg; --ty: 0px; --tz: 0px; --op: 1; }
+
+  /* muis-parallax op hero-elementen */
+  .hover-3d { transition: transform .35s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+
+  /* dikke outline — cartoon/technische kant, zonder neon-overdaad */
+  .outline-card {
+    border: 2px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .outline-card:hover { border-color: rgba(0,175,255,.5); }
+
+  /* lichtveeg over een kaart bij hover */
+  .sheen { position: relative; overflow: hidden; }
+  .sheen::after {
+    content:''; position:absolute; top:0; left:-75%; width:45%; height:100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.10), transparent);
+    transform: skewX(-18deg); opacity: 0; pointer-events: none;
+  }
+  .sheen:hover::after { opacity: 1; animation: sheen-run 1.05s ease forwards; }
+  @keyframes sheen-run { from { left:-75%; } to { left:130%; } }
+
+  /* dunne neon-rand die alleen oplicht bij hover */
+  .edge-glow { position: relative; }
+  .edge-glow::before {
+    content:''; position:absolute; inset:-1px; border-radius: inherit; padding:1px;
+    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple), var(--neon-pink));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    opacity: 0; transition: opacity .4s; pointer-events: none;
+  }
+  .edge-glow:hover::before { opacity: .55; }
+
+  /* ─── speelplaats: app-launcher ─── */
+  #appStage {
+    position: fixed; inset: 0; z-index: 90; display: none;
+    background: rgba(2,1,8,.92); backdrop-filter: blur(10px);
+  }
+  #appStage.open { display: flex; flex-direction: column; }
+  #appStageBar {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: .85rem 1.1rem; border-bottom: 2px solid var(--line-strong);
+    background: linear-gradient(90deg, rgba(0,175,255,.08), rgba(177,0,255,.08));
+  }
+  #appStageFrame { flex: 1; width: 100%; border: 0; background: #000; }
+
+  .play-tile { position: relative; }
+  .play-tile .play-badge {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .35s; background: rgba(4,3,12,.55);
+  }
+  .play-tile:hover .play-badge { opacity: 1; }
+
+  /* ─── videokaarten ─── */
+  .vid-frame { border: 2px solid var(--line); border-radius: 1.25rem; overflow: hidden; background: #000; }
+  .vid-frame video { display: block; width: 100%; height: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; }
+  /* uitgelichte portretvideo: staand kader, niet paginavullend */
+  .vid-portrait { max-width: 340px; margin-inline: auto; }
+  .vid-portrait video { aspect-ratio: 9 / 16; object-fit: cover; }
+
+  /* ─── jobs: vakgebied-chips ─── */
+  .chip {
+    border: 1.5px solid var(--line); border-radius: 999px;
+    padding: .45rem 1rem; font-size: .75rem; font-weight: 600;
+    transition: border-color .3s, color .3s, background .3s; cursor: pointer;
+  }
+  .chip:hover, .chip.on { border-color: rgba(0,175,255,.6); color:#fff; background: rgba(0,175,255,.08); }
+
+  /* dropdown in de navbar */
+  .nav-drop { position: relative; }
+  .nav-drop-menu {
+    position: absolute; top: calc(100% + 14px); right: 0; min-width: 230px;
+    border: 2px solid var(--line-strong); border-radius: 1rem; padding: .5rem;
+    background: rgba(8,7,24,.96); backdrop-filter: blur(16px);
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity .25s, transform .25s, visibility .25s;
+  }
+  .nav-drop:hover .nav-drop-menu, .nav-drop:focus-within .nav-drop-menu {
+    opacity: 1; visibility: visible; transform: translateY(0);
+  }
+  .nav-drop-menu a {
+    display: flex; align-items: center; gap: .6rem; padding: .6rem .75rem;
+    border-radius: .65rem; font-size: .85rem; color: #cfcce8; transition: background .2s, color .2s;
+  }
+  .nav-drop-menu a:hover { background: rgba(255,255,255,.06); color: #fff; }
+
+  /* wie rustiger wil, krijgt rustiger */
+  @media (prefers-reduced-motion: reduce) {
+    .tilt, .depth, .hover-3d { transform: none !important; opacity: 1 !important; transition: none !important; }
+    .float, .atom-particle, .node-pulse { animation: none !important; }
+    html { scroll-behavior: auto; }
+  }
 </style>
 </head>
 <body>
+<script>document.documentElement.classList.add('js-3d');</script>
 
 <canvas id="stars" class="fixed inset-0 w-full h-full"></canvas>
+
+<div id="scrollProgress"></div>
+
+<div class="light-field" aria-hidden="true">
+  <div class="bloom bloom-a depth" data-depth="0.06"></div>
+  <div class="bloom bloom-b depth" data-depth="-0.09"></div>
+  <div class="bloom bloom-c depth" data-depth="0.04"></div>
+</div>
 
 <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
   <svg class="atom-particle" style="top:8%; left:5%; animation-duration:18s;" width="60" height="60" viewBox="0 0 60 60">
@@ -194,15 +341,25 @@
       </span>
     </div>
 
-    <div class="hidden md:flex items-center gap-7 text-sm font-medium tracking-wide text-gray-300">
+    <div class="hidden md:flex items-center gap-6 text-sm font-medium tracking-wide text-gray-300">
       <a onclick="goTo('home')" data-page="home" class="nav-link hover:text-white transition">Home</a>
-      <a onclick="goTo('portaal')" data-page="portaal" class="nav-link hover:text-white transition">Leerlingenportaal</a>
-      <a onclick="goTo('vacatures')" data-page="vacatures" class="nav-link hover:text-white transition">Vacatures</a>
-      <a onclick="goTo('materiaal')" data-page="materiaal" class="nav-link hover:text-white transition">Materiaal</a>
-      <a onclick="goTo('skillcard')" data-page="skillcard" class="nav-link hover:text-white transition">Over mij</a>
-      <a onclick="goTo('portfolio')" data-page="portfolio" class="nav-link hover:text-white transition">Portfolio</a>
-      <a onclick="goTo('universum')" data-page="universum" class="nav-link hover:text-white transition">Universum</a>
-      <a onclick="goTo('home', 'contact')" class="nav-link hover:text-white transition">Contact</a>
+      <a onclick="goTo('demos')" data-page="demos" class="nav-link hover:text-white transition">Speelplaats</a>
+      <a onclick="goTo('video')" data-page="video" class="nav-link hover:text-white transition">Video</a>
+      <a onclick="goTo('portaal')" data-page="portaal" class="nav-link hover:text-white transition">Portaal</a>
+      <a onclick="goTo('vacatures')" data-page="vacatures" class="nav-link hover:text-white transition">Jobs</a>
+      <a onclick="goTo('materiaal')" data-page="materiaal" class="nav-link hover:text-white transition">Shop</a>
+
+      <div class="nav-drop">
+        <a tabindex="0" class="nav-link hover:text-white transition flex items-center gap-1">
+          Meer <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+        </a>
+        <div class="nav-drop-menu">
+          <a onclick="goTo('portfolio')" data-page="portfolio"><i data-lucide="folder-open" class="w-4 h-4 text-[#00AFFF]"></i> Portfolio &amp; diensten</a>
+          <a onclick="goTo('skillcard')" data-page="skillcard"><i data-lucide="badge-check" class="w-4 h-4 text-[#FF2EB3]"></i> Over mij</a>
+          <a onclick="goTo('universum')" data-page="universum"><i data-lucide="sparkles" class="w-4 h-4 text-[#B100FF]"></i> Universum</a>
+          <a onclick="goTo('home','contact')"><i data-lucide="mail" class="w-4 h-4 text-[#00AFFF]"></i> Contact</a>
+        </div>
+      </div>
     </div>
 
     <button onclick="goTo('home','contact')"
@@ -217,11 +374,13 @@
 
   <div id="mobileMenu" class="hidden md:hidden flex flex-col gap-1 px-5 pb-5 text-sm font-medium">
     <a onclick="goTo('home')" class="py-2 border-b border-white/10">Home</a>
+    <a onclick="goTo('demos')" class="py-2 border-b border-white/10">Speelplaats &amp; demo's</a>
+    <a onclick="goTo('video')" class="py-2 border-b border-white/10">Video's</a>
     <a onclick="goTo('portaal')" class="py-2 border-b border-white/10">Leerlingenportaal</a>
-    <a onclick="goTo('vacatures')" class="py-2 border-b border-white/10">Vacatures</a>
-    <a onclick="goTo('materiaal')" class="py-2 border-b border-white/10">Materiaal</a>
+    <a onclick="goTo('vacatures')" class="py-2 border-b border-white/10">Jobs in Oostende</a>
+    <a onclick="goTo('materiaal')" class="py-2 border-b border-white/10">Shop</a>
+    <a onclick="goTo('portfolio')" class="py-2 border-b border-white/10">Portfolio &amp; diensten</a>
     <a onclick="goTo('skillcard')" class="py-2 border-b border-white/10">Over mij</a>
-    <a onclick="goTo('portfolio')" class="py-2 border-b border-white/10">Portfolio</a>
     <a onclick="goTo('universum')" class="py-2 border-b border-white/10">Universum</a>
     <a onclick="goTo('home','contact')" class="py-2">Contact</a>
   </div>
@@ -235,7 +394,7 @@
   <div class="max-w-5xl mx-auto text-center">
 
     <div class="flex justify-center mb-8">
-      <div class="relative w-44 h-44 md:w-56 md:h-56 float">
+      <div class="relative w-44 h-44 md:w-56 md:h-56 float depth hover-3d" data-depth="-0.10" data-hover3d>
         <div class="absolute inset-0 rounded-full orbit-ring" style="transform:scale(1.25)"></div>
         <div class="absolute inset-0 rounded-full orbit-ring" style="transform:scale(1.45); border-color: rgba(255,61,196,0.18);"></div>
         <div class="absolute inset-0 rounded-full overflow-hidden glow-blue glow-pink border border-white/10">
@@ -264,13 +423,13 @@
         class="btn-cosmic text-white font-semibold px-9 py-4 rounded-full glow-blue hover:scale-105 transition flex items-center justify-center gap-2">
         <i data-lucide="rocket" class="w-5 h-5"></i> Start de connectie
       </button>
-      <a href="https://beurdlogic-core.vercel.app" target="_blank" rel="noopener noreferrer"
-        class="glass text-white font-semibold px-9 py-4 rounded-full hover:border-[#2BC8FF]/50 transition flex items-center justify-center gap-2">
-        <i data-lucide="layout-dashboard" class="w-5 h-5 text-[#2BC8FF]"></i> Bekijk het portaal
-      </a>
+      <button onclick="goTo('demos')"
+        class="glass outline-card text-white font-semibold px-9 py-4 rounded-full hover:border-[#00AFFF]/60 transition flex items-center justify-center gap-2">
+        <i data-lucide="gamepad-2" class="w-5 h-5 text-[#00AFFF]"></i> Speel een demo
+      </button>
     </div>
 
-    <div class="grid grid-cols-3 gap-4 max-w-xl mx-auto mt-20">
+    <div class="grid grid-cols-3 gap-4 max-w-xl mx-auto mt-20 scene">
       <div class="glass-card rounded-2xl p-5">
         <div class="font-display text-3xl font-bold text-glow-blue text-[#2BC8FF]">100%</div>
         <div class="text-xs text-gray-400 uppercase tracking-wide mt-1.5">Praktijkgericht</div>
@@ -284,6 +443,104 @@
         <div class="text-xs text-gray-400 uppercase tracking-wide mt-1.5">Voor elke stap</div>
       </div>
     </div>
+  </div>
+</section>
+
+
+<!-- DE HUB — alles vanaf hier bereikbaar -->
+<section class="relative z-10 px-5 py-20 max-w-6xl mx-auto scene">
+  <div class="text-center mb-14 scroll-fade">
+    <div class="flex items-center gap-3 mb-5 justify-center">
+      <div class="h-px w-12 bg-gradient-to-r from-transparent to-[#00AFFF]"></div>
+      <span class="text-xs font-semibold uppercase tracking-[0.25em] text-[#00AFFF]">De hub</span>
+      <div class="h-px w-12 bg-gradient-to-l from-transparent to-[#FF2EB3]"></div>
+    </div>
+    <h2 class="font-display text-3xl md:text-5xl font-bold mb-4">Waar wil je beginnen?</h2>
+    <p class="text-gray-400 font-light max-w-2xl mx-auto">
+      Alles staat hier: speelbare apps, filmpjes, lessen, materiaal, werk en wie erachter zit.
+    </p>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <div onclick="goTo('demos')" class="glass-card outline-card sheen rounded-3xl p-7 cursor-pointer tilt group">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0078FF] to-[#00AFFF] flex items-center justify-center mb-6">
+        <i data-lucide="gamepad-2" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Speelplaats</h3>
+      <p class="text-gray-400 font-light leading-relaxed text-[15px] mb-5">
+        Zeven apps en de demoversie van Logic Connections — meteen speelbaar, geen account.
+      </p>
+      <span class="text-xs font-semibold text-[#00AFFF] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+        Spelen <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </div>
+
+    <div onclick="goTo('video')" class="glass-card outline-card sheen rounded-3xl p-7 cursor-pointer tilt group">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#B100FF] to-[#FF2EB3] flex items-center justify-center mb-6">
+        <i data-lucide="clapperboard" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Video's met Madness Juice</h3>
+      <p class="text-gray-400 font-light leading-relaxed text-[15px] mb-5">
+        De crew in actie: korte films die door het hele lesmateriaal lopen.
+      </p>
+      <span class="text-xs font-semibold text-[#FF2EB3] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+        Kijken <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </div>
+
+    <div onclick="goTo('portaal')" class="glass-card outline-card sheen rounded-3xl p-7 cursor-pointer tilt group">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00AFFF] to-[#c9a3ff] flex items-center justify-center mb-6">
+        <i data-lucide="layout-dashboard" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Leerlingenportaal</h3>
+      <p class="text-gray-400 font-light leading-relaxed text-[15px] mb-5">
+        Leerpaden, XP, badges en skillcards — zo ziet een traject eruit voor een leerling.
+      </p>
+      <span class="text-xs font-semibold text-[#00AFFF] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+        Bekijken <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </div>
+
+    <div onclick="goTo('materiaal')" class="glass-card outline-card sheen rounded-3xl p-7 cursor-pointer tilt group">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FF2EB3] to-[#B100FF] flex items-center justify-center mb-6">
+        <i data-lucide="shopping-bag" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Shop</h3>
+      <p class="text-gray-400 font-light leading-relaxed text-[15px] mb-5">
+        Lessen, bundels en digitale assets — én materiaal uit de werkplaats.
+      </p>
+      <span class="text-xs font-semibold text-[#FF2EB3] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+        Naar de shop <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </div>
+
+    <div onclick="goTo('vacatures')" class="glass-card outline-card sheen rounded-3xl p-7 cursor-pointer tilt group">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#c9a3ff] to-[#00AFFF] flex items-center justify-center mb-6">
+        <i data-lucide="briefcase" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Jobs in Oostende</h3>
+      <p class="text-gray-400 font-light leading-relaxed text-[15px] mb-5">
+        Waar lassen, mechanica, metaal en elektriciteit in deze regio op uitkomen.
+      </p>
+      <span class="text-xs font-semibold text-[#c9a3ff] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+        Ontdekken <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </div>
+
+    <div onclick="goTo('portfolio')" class="glass-card outline-card sheen rounded-3xl p-7 cursor-pointer tilt group">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#B100FF] to-[#0078FF] flex items-center justify-center mb-6">
+        <i data-lucide="cpu" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Portfolio &amp; diensten</h3>
+      <p class="text-gray-400 font-light leading-relaxed text-[15px] mb-5">
+        Gebouwd werk, en wat ik daarnaast doe — van lokale AI tot maatwerk.
+      </p>
+      <span class="text-xs font-semibold text-[#00AFFF] inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+        Bekijken <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </div>
+
   </div>
 </section>
 
@@ -624,19 +881,217 @@
   <div class="max-w-5xl mx-auto text-center scroll-fade">
     <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6">
       <i data-lucide="briefcase" class="w-4 h-4 text-[#FF3DC4]"></i>
-      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">Van klaslokaal naar werkvloer</span>
+      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">Jobs in en rond Oostende</span>
     </div>
     <h1 class="font-display font-black text-4xl md:text-5xl leading-tight mb-5">
-      Uitgelichte <span class="grad-text">vacatures</span>
+      Van hier naar <span class="grad-text">de werkvloer</span>
     </h1>
     <p class="text-lg text-gray-300/90 max-w-2xl mx-auto font-light leading-relaxed">
-      Een selectie van actuele vacatures in lassen, mechanica en elektriciteit — zodat leerlingen
-      zien waar hun vakmanschap naartoe leidt.
+      Lassen, mechanica, metaal en elektriciteit in en rond Oostende — zodat leerlingen
+      zien waar hun vakmanschap naartoe leidt, en waarom het de moeite is.
     </p>
   </div>
 </section>
 
-<section class="relative z-10 px-5 pb-24 max-w-6xl mx-auto">
+<!-- KENNISMAKING — rechtstreeks tegen de jongere -->
+<section class="relative z-10 px-5 pb-14 max-w-5xl mx-auto scene">
+  <div class="glass-card outline-card edge-glow rounded-3xl p-8 md:p-11 tilt">
+    <div class="grid md:grid-cols-[1fr_auto] gap-8 items-center">
+      <div>
+        <span class="badge-pill rounded-full px-3 py-1 text-[11px] font-semibold text-[#FF2EB3] inline-block mb-5">VOOR JOU, NIET VOOR JE RAPPORT</span>
+        <h2 class="font-display text-2xl md:text-4xl font-bold mb-5 leading-tight">
+          Je handen zijn hier <span class="grad-text">geld waard.</span>
+        </h2>
+        <div class="space-y-4 text-gray-300/90 font-light leading-relaxed">
+          <p>
+            Misschien zeggen ze op school dat je niet goed meekan. In een werkplaats telt iets anders:
+            kan je het maken, kan je het meten, kan je het veilig. Dat kan je leren. Dat heeft niets te
+            maken met hoe stil je in de klas zit.
+          </p>
+          <p>
+            En in Oostende zit dat werk dichtbij. De haven, de offshore, de ateliers en de bouw zoeken
+            mensen die lassen, monteren, meten en herstellen. Niet later. Nu.
+          </p>
+          <p class="text-gray-200">
+            Wat je hier ziet, is waar je vak je naartoe brengt — zodat je weet waarvoor je het doet.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-7">
+          <button onclick="goTo('demos')" class="btn-cosmic text-white font-semibold px-6 py-3 rounded-full hover:scale-105 transition inline-flex items-center gap-2">
+            <span class="flex items-center gap-2"><i data-lucide="gamepad-2" class="w-4 h-4"></i> Test jezelf in een app</span>
+          </button>
+          <button onclick="goTo('portaal')" class="glass outline-card text-white font-semibold px-6 py-3 rounded-full hover:border-[#00AFFF]/60 transition inline-flex items-center gap-2">
+            <i data-lucide="route" class="w-4 h-4 text-[#00AFFF]"></i> Bekijk een leerpad
+          </button>
+        </div>
+      </div>
+
+      <div class="hidden md:block shrink-0">
+        <div class="w-44 h-44 relative float">
+          <div class="absolute inset-0 rounded-full orbit-ring" style="transform:scale(1.2)"></div>
+          <div class="absolute inset-0 rounded-2xl overflow-hidden border-2 border-white/10">
+            <img src="images/madness-juice.png" alt="Madness Juice" class="w-full h-full object-cover">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WAAR HET WERK ZIT — OOSTENDE -->
+<section class="relative z-10 px-5 pb-6 max-w-6xl mx-auto">
+  <div class="text-center mb-12 scroll-fade">
+    <div class="flex items-center gap-3 mb-5 justify-center">
+      <div class="h-px w-12 bg-gradient-to-r from-transparent to-[#00AFFF]"></div>
+      <span class="text-xs font-semibold uppercase tracking-[0.25em] text-[#00AFFF]">Oostende &amp; de kust</span>
+      <div class="h-px w-12 bg-gradient-to-l from-transparent to-[#FF2EB3]"></div>
+    </div>
+    <h2 class="font-display text-3xl md:text-5xl font-bold mb-4">Waar het werk zit</h2>
+    <p class="text-gray-400 font-light max-w-2xl mx-auto">
+      De vier vakgebieden en de beroepen waar ze in deze regio op uitkomen.
+    </p>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-6">
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="flex items-center gap-4 mb-5">
+        <div class="w-13 h-13 w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-[#FF2EB3] to-[#B100FF] flex items-center justify-center shrink-0">
+          <i data-lucide="flame" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h3 class="font-display text-lg font-bold">Lassen</h3>
+          <p class="text-xs text-gray-500">Constructie · scheepsherstelling · offshore</p>
+        </div>
+      </div>
+      <ul class="space-y-2.5 text-sm text-gray-300 font-light mb-5">
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Lasser MIG/MAG en TIG in metaalconstructie</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Scheepsherstelling en staalwerk in de haven</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Pijpfitter en plaatbewerker in de industrie</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Onderhoudslasser bij offshore-installaties</li>
+      </ul>
+      <p class="text-xs text-gray-500 font-light leading-relaxed">
+        Een laspost is zeldzaam werkloos. Wie gecertificeerd kan lassen, kiest meestal zelf waar hij werkt.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="flex items-center gap-4 mb-5">
+        <div class="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-[#0078FF] to-[#00AFFF] flex items-center justify-center shrink-0">
+          <i data-lucide="cog" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h3 class="font-display text-lg font-bold">Mechanica</h3>
+          <p class="text-xs text-gray-500">Onderhoud · machines · maritiem</p>
+        </div>
+      </div>
+      <ul class="space-y-2.5 text-sm text-gray-300 font-light mb-5">
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Onderhoudsmecanicien in productie en voeding</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Scheeps- en motortechnieker</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Technieker windturbines en offshore-onderhoud</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Monteur en servicetechnieker op de baan</li>
+      </ul>
+      <p class="text-xs text-gray-500 font-light leading-relaxed">
+        Machines draaien dag en nacht. Wie ze aan de praat houdt, wordt gebeld voor het stilvalt.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="flex items-center gap-4 mb-5">
+        <div class="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-[#c9a3ff] to-[#00AFFF] flex items-center justify-center shrink-0">
+          <i data-lucide="zap" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h3 class="font-display text-lg font-bold">Elektriciteit</h3>
+          <p class="text-xs text-gray-500">Installatie · industrie · energie</p>
+        </div>
+      </div>
+      <ul class="space-y-2.5 text-sm text-gray-300 font-light mb-5">
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#c9a3ff] shrink-0 mt-0.5"></i> Installateur woningbouw en renovatie</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#c9a3ff] shrink-0 mt-0.5"></i> Industrieel elektricien en bordenbouwer</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#c9a3ff] shrink-0 mt-0.5"></i> Technieker zonnepanelen, laadpalen en warmtepompen</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#c9a3ff] shrink-0 mt-0.5"></i> Onderhoud van elektrische installaties in de haven</li>
+      </ul>
+      <p class="text-xs text-gray-500 font-light leading-relaxed">
+        De energieomslag draait op handen. Elke nieuwe installatie vraagt iemand die ze aansluit.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="flex items-center gap-4 mb-5">
+        <div class="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-[#B100FF] to-[#FF2EB3] flex items-center justify-center shrink-0">
+          <i data-lucide="hammer" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h3 class="font-display text-lg font-bold">Metaal</h3>
+          <p class="text-xs text-gray-500">Verspaning · plaatwerk · montage</p>
+        </div>
+      </div>
+      <ul class="space-y-2.5 text-sm text-gray-300 font-light mb-5">
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> CNC-operator en verspaner</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Plaatbewerker en zetter</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Monteur metaalconstructies op werf en atelier</li>
+        <li class="flex items-start gap-2.5"><i data-lucide="chevron-right" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Magazijn- en productiemedewerker met technische basis</li>
+      </ul>
+      <p class="text-xs text-gray-500 font-light leading-relaxed">
+        Meten, aftekenen, opspannen. Wie precies werkt, groeit hier snel door naar machinewerk.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- SECTOREN IN DE REGIO -->
+<section class="relative z-10 px-5 pt-14 pb-6 max-w-6xl mx-auto">
+  <h2 class="font-display text-2xl md:text-3xl font-bold mb-3 text-center scroll-fade">De motoren van de regio</h2>
+  <p class="text-gray-400 font-light text-center mb-10 max-w-2xl mx-auto scroll-fade">
+    Vijf sectoren in en rond Oostende waar technische profielen structureel gevraagd worden.
+  </p>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="glass-card outline-card rounded-2xl p-5 text-center tilt">
+      <i data-lucide="anchor" class="w-7 h-7 text-[#00AFFF] mx-auto mb-3"></i>
+      <h3 class="font-display font-bold text-sm mb-1.5">Haven &amp; maritiem</h3>
+      <p class="text-xs text-gray-500 font-light">Scheepsherstelling, staalwerk, laden en lossen, onderhoud.</p>
+    </div>
+    <div class="glass-card outline-card rounded-2xl p-5 text-center tilt">
+      <i data-lucide="wind" class="w-7 h-7 text-[#FF2EB3] mx-auto mb-3"></i>
+      <h3 class="font-display font-bold text-sm mb-1.5">Offshore &amp; energie</h3>
+      <p class="text-xs text-gray-500 font-light">Windparken op zee, met Oostende als uitvalsbasis voor onderhoud.</p>
+    </div>
+    <div class="glass-card outline-card rounded-2xl p-5 text-center tilt">
+      <i data-lucide="factory" class="w-7 h-7 text-[#c9a3ff] mx-auto mb-3"></i>
+      <h3 class="font-display font-bold text-sm mb-1.5">Industrie &amp; voeding</h3>
+      <p class="text-xs text-gray-500 font-light">Productielijnen die technisch onderhoud nodig hebben.</p>
+    </div>
+    <div class="glass-card outline-card rounded-2xl p-5 text-center tilt">
+      <i data-lucide="plane" class="w-7 h-7 text-[#00AFFF] mx-auto mb-3"></i>
+      <h3 class="font-display font-bold text-sm mb-1.5">Luchthaven &amp; logistiek</h3>
+      <p class="text-xs text-gray-500 font-light">Technisch onderhoud, grondafhandeling en transport.</p>
+    </div>
+    <div class="glass-card outline-card rounded-2xl p-5 text-center tilt">
+      <i data-lucide="building-2" class="w-7 h-7 text-[#B100FF] mx-auto mb-3"></i>
+      <h3 class="font-display font-bold text-sm mb-1.5">Bouw &amp; renovatie</h3>
+      <p class="text-xs text-gray-500 font-light">Elektriciteit, sanitair, dak en metaal in een kuststad die blijft bouwen.</p>
+    </div>
+  </div>
+
+  <div class="glass-card outline-card rounded-2xl p-6 mt-8 flex items-start gap-4 scroll-fade">
+    <i data-lucide="info" class="w-6 h-6 text-[#00AFFF] shrink-0 mt-0.5"></i>
+    <p class="text-sm text-gray-400 font-light leading-relaxed">
+      <span class="text-gray-200 font-medium">Sectorbeeld, geen vacaturelijst.</span> Dit overzicht toont
+      waar de vakgebieden in deze regio op uitkomen. Het is geen live overzicht van openstaande
+      plaatsen en geen samenwerking met de genoemde sectoren. Voor echte vacatures van partnerbedrijven:
+      <span class="text-[#00AFFF] cursor-pointer" onclick="goTo('home','contact')">laat het weten</span>.
+    </p>
+  </div>
+</section>
+
+<section class="relative z-10 px-5 pt-14 pb-24 max-w-6xl mx-auto">
+  <h2 class="font-display text-2xl md:text-3xl font-bold mb-3 text-center scroll-fade">Zo ziet zo'n plaats eruit</h2>
+  <p class="text-gray-400 font-light text-center mb-10 max-w-2xl mx-auto scroll-fade">
+    Drie voorbeeldfuncties, uitgeschreven zoals een leerling ze zou tegenkomen.
+  </p>
   <div class="grid md:grid-cols-3 gap-6">
 
     <!-- LASSEN -->
@@ -740,14 +1195,183 @@
   <div class="max-w-5xl mx-auto text-center scroll-fade">
     <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6">
       <i data-lucide="shopping-bag" class="w-4 h-4 text-[#2BC8FF]"></i>
-      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">Catalogus · huur of koop</span>
+      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">Lessen · assets · materiaal</span>
     </div>
     <h1 class="font-display font-black text-4xl md:text-5xl leading-tight mb-5">
-      Werkplaats<span class="grad-text">materiaal</span>
+      De <span class="grad-text">shop</span>
     </h1>
     <p class="text-lg text-gray-300/90 max-w-2xl mx-auto font-light leading-relaxed">
-      Tweedehands en demo-materiaal uit onze werkplaats — te huur of te koop voor scholen,
-      ateliers en zelfstandigen. Interesse? Meld het via het formulier, geen automatische betaling.
+      Lessen, digitale assets en materiaal uit de werkplaats. Alles gaat via het formulier —
+      geen automatische betaling, geen winkelmand die je vastzet.
+    </p>
+  </div>
+</section>
+
+<!-- LESSEN & DIGITALE ASSETS -->
+<section class="relative z-10 px-5 pt-4 pb-6 max-w-6xl mx-auto scene">
+  <div class="text-center mb-11 scroll-fade">
+    <div class="flex items-center gap-3 mb-5 justify-center">
+      <div class="h-px w-12 bg-gradient-to-r from-transparent to-[#B100FF]"></div>
+      <span class="text-xs font-semibold uppercase tracking-[0.25em] text-[#c9a3ff]">Direct downloadbaar</span>
+      <div class="h-px w-12 bg-gradient-to-l from-transparent to-[#00AFFF]"></div>
+    </div>
+    <h2 class="font-display text-3xl md:text-5xl font-bold mb-4">Lessen &amp; digitale assets</h2>
+    <p class="text-gray-400 font-light max-w-2xl mx-auto">
+      Alles hieronder is gebouwd voor een echte klas en daar ook gebruikt. Geen theorieboek,
+      maar materiaal dat de dag zelf inzetbaar is.
+    </p>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="h-36 bg-gradient-to-br from-[#FF2EB3]/25 to-[#B100FF]/10 flex items-center justify-center relative">
+        <i data-lucide="shield-alert" class="w-14 h-14 text-[#FF2EB3] opacity-75"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#FF2EB3]">BUNDEL</span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-1">Veiligheidsbundel</h3>
+        <p class="text-xs text-gray-500 mb-3">PBM · pictogrammen · LMRA · Stop Kijk Denk Doe</p>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-5 flex-1">
+          Visuele veiligheidsbundel met pictogrammen, foutkaarten en korte instructiekaarten.
+          Gemaakt voor taalzwakke en anderstalige leerlingen: kort schrijven, sterk beeld.
+        </p>
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-display font-bold text-[#FF2EB3]">vanaf €39</span>
+          <span class="text-xs text-gray-500">schoollicentie</span>
+        </div>
+        <button onclick="goTo('home','contact')" class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Aanvragen</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="h-36 bg-gradient-to-br from-[#00AFFF]/25 to-[#0078FF]/10 flex items-center justify-center relative">
+        <i data-lucide="route" class="w-14 h-14 text-[#00AFFF] opacity-75"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#00AFFF]">LEERPAD</span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-1">DrillMaster — kolomboormachine</h3>
+        <p class="text-xs text-gray-500 mb-3">Volledig leerpad · les → gatekeeper → praktijk</p>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-5 flex-1">
+          Het complete gamified leerpad rond de kolomboormachine, met lessen, oefeningen,
+          gatekeepers en praktijkchecks. Draait op je eigen scherm of via het portaal.
+        </p>
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-display font-bold text-[#00AFFF]">op aanvraag</span>
+          <span class="text-xs text-gray-500">per school</span>
+        </div>
+        <button onclick="goTo('home','contact')" class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4"></i> Prijs opvragen</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="h-36 bg-gradient-to-br from-[#B100FF]/25 to-[#FF2EB3]/10 flex items-center justify-center relative">
+        <i data-lucide="gamepad-2" class="w-14 h-14 text-[#c9a3ff] opacity-75"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#c9a3ff]">APP</span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-1">Gamified app op maat</h3>
+        <p class="text-xs text-gray-500 mb-3">Eén HTML-bestand · geen installatie</p>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-5 flex-1">
+          Jouw machine, jouw procedure, jouw vak — omgezet naar een speelbare app zoals die
+          op de speelplaats. Werkt op elk schooltoestel, ook offline.
+        </p>
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-display font-bold text-[#c9a3ff]">op maat</span>
+          <span class="text-xs text-gray-500">vaste prijs vooraf</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="goTo('demos')" class="glass outline-card rounded-xl py-3 text-xs font-semibold hover:border-[#B100FF]/60 transition">Eerst spelen</button>
+          <button onclick="goTo('home','contact')" class="btn-cosmic rounded-xl py-3 text-xs font-semibold text-white">Bespreken</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="h-36 bg-gradient-to-br from-[#00AFFF]/25 to-[#c9a3ff]/10 flex items-center justify-center relative">
+        <i data-lucide="image" class="w-14 h-14 text-[#00AFFF] opacity-75"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#00AFFF]">VISUEEL</span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-1">Infographics &amp; instructiekaarten</h3>
+        <p class="text-xs text-gray-500 mb-3">Print- en schermklaar</p>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-5 flex-1">
+          Stappenplannen, machinekaarten en meetinstructies in korte taal met echte foto's.
+          Eén handeling per stap — ophangen aan de machine en klaar.
+        </p>
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-display font-bold text-[#00AFFF]">vanaf €19</span>
+          <span class="text-xs text-gray-500">per set</span>
+        </div>
+        <button onclick="goTo('home','contact')" class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Aanvragen</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="h-36 bg-gradient-to-br from-[#FF2EB3]/25 to-[#00AFFF]/10 flex items-center justify-center relative">
+        <i data-lucide="id-card" class="w-14 h-14 text-[#FF2EB3] opacity-75"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#FF2EB3]">SYSTEEM</span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-1">Machinepaspoort &amp; skillcard</h3>
+        <p class="text-xs text-gray-500 mb-3">Uitleg → check → quiz → simulatie → vrijgave</p>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-5 flex-1">
+          Sjablonen om per machine vast te leggen wie wat mag, met bewijs van groei in context.
+          De leerkracht geeft vrij — nooit een score alleen.
+        </p>
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-display font-bold text-[#FF2EB3]">vanaf €29</span>
+          <span class="text-xs text-gray-500">per werkplaats</span>
+        </div>
+        <button onclick="goTo('home','contact')" class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4"></i> Aanvragen</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="h-36 bg-gradient-to-br from-[#B100FF]/25 to-[#0078FF]/10 flex items-center justify-center relative">
+        <i data-lucide="list-checks" class="w-14 h-14 text-[#c9a3ff] opacity-75"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#c9a3ff]">VRAAGBANK</span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-1">Quizzen &amp; vraagbank</h3>
+        <p class="text-xs text-gray-500 mb-3">Veiligheid · gereedschap · machines · meten</p>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-5 flex-1">
+          Kant-en-klare vragenreeksen per vakgebied, herbruikbaar in je eigen quiz, op papier
+          of in een app. Inclusief foutkaarten bij de meest gemaakte fouten.
+        </p>
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-display font-bold text-[#c9a3ff]">vanaf €25</span>
+          <span class="text-xs text-gray-500">per categorie</span>
+        </div>
+        <button onclick="goTo('home','contact')" class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4"></i> Aanvragen</span>
+        </button>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<div class="section-divider max-w-4xl mx-auto my-6"></div>
+
+<section class="relative z-10 px-5 pt-10 pb-4 max-w-6xl mx-auto">
+  <div class="text-center scroll-fade">
+    <div class="flex items-center gap-3 mb-5 justify-center">
+      <div class="h-px w-12 bg-gradient-to-r from-transparent to-[#00AFFF]"></div>
+      <span class="text-xs font-semibold uppercase tracking-[0.25em] text-[#00AFFF]">Uit de werkplaats</span>
+      <div class="h-px w-12 bg-gradient-to-l from-transparent to-[#FF2EB3]"></div>
+    </div>
+    <h2 class="font-display text-3xl md:text-5xl font-bold mb-4">Fysiek materiaal</h2>
+    <p class="text-gray-400 font-light max-w-2xl mx-auto">
+      Tweedehands en demo-materiaal — te huur of te koop voor scholen, ateliers en zelfstandigen.
     </p>
   </div>
 </section>
@@ -908,8 +1532,9 @@
   <div class="glass-card rounded-2xl p-6 mt-8 flex items-center gap-4 scroll-fade">
     <i data-lucide="info" class="w-6 h-6 text-[#2BC8FF] shrink-0"></i>
     <p class="text-sm text-gray-400 font-light">
-      Demo-catalogus met voorbeeldprijzen. "Huren" en "Kopen" sturen je nu naar het contactformulier —
-      er is nog geen automatische betaling. Zeg het als je een echte winkelmand wil.
+      <span class="text-gray-200 font-medium">Richtprijzen, geen kassa.</span> Alle knoppen sturen je
+      naar het contactformulier; er is bewust nog geen automatische betaling. Je krijgt eerst een
+      concreet voorstel met vaste prijs, daarna pas een factuur.
     </p>
   </div>
 </section>
@@ -1052,13 +1677,14 @@
   <div class="max-w-5xl mx-auto text-center scroll-fade">
     <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6">
       <i data-lucide="folder-open" class="w-4 h-4 text-[#2BC8FF]"></i>
-      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">Portfolio</span>
+      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">Portfolio &amp; diensten</span>
     </div>
     <h1 class="font-display font-black text-4xl md:text-5xl leading-tight mb-5">
-      Wat ik al <span class="grad-text">gebouwd</span> heb
+      Gebouwd werk &amp; <span class="grad-text">diensten</span>
     </h1>
     <p class="text-lg text-gray-300/90 max-w-2xl mx-auto font-light leading-relaxed">
-      Een selectie van gebouwde en gedeployde systemen — voor de klasvloer én erbuiten.
+      Een selectie van gebouwde en gedeployde systemen — en wat ik daarnaast voor scholen,
+      ateliers en bedrijven doe.
     </p>
   </div>
 </section>
@@ -1148,11 +1774,162 @@
 
   </div>
 
-  <div class="text-center mt-12 scroll-fade">
-    <button onclick="goTo('home','contact')"
-      class="btn-cosmic text-white font-semibold px-9 py-4 rounded-full glow-blue hover:scale-105 transition inline-flex items-center gap-2">
-      <i data-lucide="sparkles" class="w-5 h-5"></i> Interesse in iets gelijkaardigs? Neem contact op
-    </button>
+</section>
+
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- DIENSTEN — BUITEN DE LESSEN OM -->
+<section class="relative z-10 px-5 pt-20 pb-6 max-w-6xl mx-auto scene">
+  <div class="text-center mb-14 scroll-fade">
+    <div class="flex items-center gap-3 mb-5 justify-center">
+      <div class="h-px w-12 bg-gradient-to-r from-transparent to-[#B100FF]"></div>
+      <span class="text-xs font-semibold uppercase tracking-[0.25em] text-[#c9a3ff]">Diensten · ook buiten het onderwijs</span>
+      <div class="h-px w-12 bg-gradient-to-l from-transparent to-[#00AFFF]"></div>
+    </div>
+    <h2 class="font-display text-3xl md:text-5xl font-bold mb-5">Wat ik voor jou kan bouwen</h2>
+    <p class="text-gray-400 font-light max-w-2xl mx-auto leading-relaxed">
+      Niet alleen lesmateriaal. Ook de techniek eronder — voor scholen, ateliers en bedrijven
+      die iets willen dat werkt in plaats van iets dat indruk maakt op een offerte.
+    </p>
+  </div>
+
+  <!-- uitgelicht: lokale AI -->
+  <div class="glass-card outline-card edge-glow sheen rounded-3xl p-8 md:p-11 mb-7 tilt">
+    <div class="grid md:grid-cols-[1.1fr_.9fr] gap-9 items-center">
+      <div>
+        <span class="badge-pill rounded-full px-3 py-1 text-[11px] font-semibold text-[#B100FF] inline-block mb-5">MEEST GEVRAAGD</span>
+        <h3 class="font-display text-2xl md:text-3xl font-bold mb-4 leading-tight">
+          Lokale AI — <span class="grad-text">op jouw machine</span>, niet in de cloud
+        </h3>
+        <p class="text-gray-300/90 font-light leading-relaxed mb-6">
+          Een AI-model dat draait op je eigen computer of server. Geen abonnement per gebruiker,
+          geen leerlinggegevens die naar een Amerikaanse dienst vertrekken, geen internet nodig.
+          Ik zet het op, maak het bruikbaar voor niet-technische mensen, en leg uit hoe je het
+          zelf draaiende houdt.
+        </p>
+        <div class="grid sm:grid-cols-2 gap-3.5 text-sm font-light text-gray-300">
+          <div class="flex items-start gap-2.5"><i data-lucide="lock" class="w-4 h-4 text-[#B100FF] shrink-0 mt-0.5"></i> Je data blijft binnenshuis</div>
+          <div class="flex items-start gap-2.5"><i data-lucide="wifi-off" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Werkt zonder internet</div>
+          <div class="flex items-start gap-2.5"><i data-lucide="euro" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> Eenmalige opzet, geen licentie per kop</div>
+          <div class="flex items-start gap-2.5"><i data-lucide="graduation-cap" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Uitleg in mensentaal, geen jargon</div>
+        </div>
+        <button onclick="goTo('home','contact')"
+          class="btn-cosmic text-white font-semibold px-8 py-3.5 rounded-full mt-8 hover:scale-105 transition inline-flex items-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4"></i> Vraag een lokale AI-opzet</span>
+        </button>
+      </div>
+
+      <div class="relative">
+        <div class="absolute -inset-8 rounded-full blur-3xl opacity-20 pointer-events-none"
+             style="background:radial-gradient(circle,#B100FF,transparent 65%)"></div>
+        <div class="relative glass outline-card rounded-2xl p-6 font-mono text-[11px] leading-relaxed text-gray-400 hover-3d" data-hover3d>
+          <div class="flex items-center gap-1.5 mb-4">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF2EB3]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#c9a3ff]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#00AFFF]"></span>
+            <span class="ml-2 text-[10px] text-gray-500">jouw-server</span>
+          </div>
+          <div><span class="text-[#00AFFF]">&gt;</span> model geladen — lokaal</div>
+          <div><span class="text-[#00AFFF]">&gt;</span> internet <span class="text-gray-600">niet vereist</span></div>
+          <div><span class="text-[#00AFFF]">&gt;</span> data verstuurd: <span class="text-[#FF2EB3]">0 bytes</span></div>
+          <div class="mt-3 pt-3 border-t border-white/10 text-gray-500">
+            vraag: <span class="text-gray-300">"maak een instructiekaart voor de kolomboormachine"</span>
+          </div>
+          <div class="mt-2 text-[#c9a3ff]">→ antwoord blijft op dit toestel.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- overige diensten -->
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0078FF] to-[#00AFFF] flex items-center justify-center mb-5">
+        <i data-lucide="code" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Maatwerk apps &amp; tools</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed">
+        Eén bestand, geen installatie, werkt op elk toestel. Van een quiz rond jouw machine
+        tot een volledig leerpad met voortgang.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#B100FF] to-[#FF2EB3] flex items-center justify-center mb-5">
+        <i data-lucide="bot" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">AI-agents &amp; automatisering</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed">
+        Systemen die herhalend werk overnemen: materiaal genereren, opvolgen, sorteren,
+        rapporteren. Met een dashboard waarop je ziet wat er draait.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#c9a3ff] to-[#00AFFF] flex items-center justify-center mb-5">
+        <i data-lucide="refresh-cw" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Oude cursus → interactief</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed">
+        Een bestaande papieren cursus omzetten naar een visuele, gamified versie —
+        zonder dat de inhoud verwatert.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FF2EB3] to-[#B100FF] flex items-center justify-center mb-5">
+        <i data-lucide="clapperboard" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Video &amp; media-productie</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed">
+        Korte instructie- en verhaalfilmpjes met eigen personages en stemmen,
+        gemaakt met een pipeline die snel kan herhalen.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00AFFF] to-[#B100FF] flex items-center justify-center mb-5">
+        <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Veiligheidsmateriaal op maat</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed">
+        Veiligheidsboekjes, pictogramsets en trainingen afgestemd op jouw werkplaats
+        en jouw machines.
+      </p>
+    </div>
+
+    <div class="glass-card outline-card sheen rounded-3xl p-7 tilt">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0078FF] to-[#c9a3ff] flex items-center justify-center mb-5">
+        <i data-lucide="users" class="w-7 h-7 text-white"></i>
+      </div>
+      <h3 class="font-display text-lg font-bold mb-3">Begeleiding voor je team</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed">
+        Leerkrachten of medewerkers leren werken met wat er gebouwd is —
+        zodat het blijft draaien wanneer ik weg ben.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<section class="relative z-10 px-5 pt-10 pb-24 max-w-4xl mx-auto">
+  <div class="glass-card outline-card edge-glow rounded-3xl p-9 md:p-11 text-center scroll-fade">
+    <h2 class="font-display text-2xl md:text-3xl font-bold mb-4">Kort gesprek, concreet voorstel</h2>
+    <p class="text-gray-400 font-light leading-relaxed max-w-xl mx-auto mb-8">
+      Vertel wat er moet gebeuren. Je krijgt een eerlijk antwoord over wat haalbaar is,
+      wat het kost en wat het niet gaat oplossen — en daarna pas werk.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <button onclick="goTo('home','contact')"
+        class="btn-cosmic text-white font-semibold px-9 py-4 rounded-full hover:scale-105 transition inline-flex items-center justify-center gap-2">
+        <span class="flex items-center gap-2"><i data-lucide="send" class="w-5 h-5"></i> Neem contact op</span>
+      </button>
+      <button onclick="goTo('demos')"
+        class="glass outline-card text-white font-semibold px-9 py-4 rounded-full hover:border-[#00AFFF]/60 transition inline-flex items-center justify-center gap-2">
+        <i data-lucide="gamepad-2" class="w-5 h-5 text-[#00AFFF]"></i> Bekijk eerst het werk
+      </button>
+    </div>
   </div>
 </section>
 
@@ -1233,6 +2010,396 @@
 
 </div>
 
+<!-- ============ PAGE: SPEELPLAATS / DEMO'S ============ -->
+<div id="page-demos" class="page">
+
+<section class="relative z-10 pt-36 pb-14 px-5 scene">
+  <div class="max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6 scroll-fade">
+      <i data-lucide="gamepad-2" class="w-4 h-4 text-[#00AFFF]"></i>
+      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">De speelplaats · alles draait hier zelf</span>
+    </div>
+    <h1 class="font-display font-black text-4xl md:text-6xl leading-[1.15] mb-7 scroll-fade">
+      Niet lezen over. <span class="grad-text">Gewoon spelen.</span>
+    </h1>
+    <p class="text-lg text-gray-300/90 max-w-2xl mx-auto font-light leading-relaxed scroll-fade">
+      Elke app hieronder start meteen in je browser. Geen account, geen installatie, geen wachten.
+      Dit is exact het materiaal dat in de klas draait — je speelt het hier zelf uit.
+    </p>
+  </div>
+</section>
+
+<!-- Logic Connections demo -->
+<section class="relative z-10 px-5 pb-6 max-w-6xl mx-auto">
+  <div class="glass-card outline-card edge-glow sheen rounded-3xl p-8 md:p-10 tilt">
+    <div class="grid md:grid-cols-[1.15fr_.85fr] gap-9 items-center">
+      <div>
+        <span class="badge-pill rounded-full px-3 py-1 text-[11px] font-semibold text-[#00AFFF] inline-block mb-5">HET PLATFORM ZELF</span>
+        <h2 class="font-display text-2xl md:text-3xl font-bold mb-4 leading-tight">
+          Logic Connections — <span class="grad-text">demoversie</span>
+        </h2>
+        <p class="text-gray-300/90 font-light leading-relaxed mb-6">
+          Het volledige leerplatform: leerpaden, kennis &amp; vrijgave, training &amp; mini-games en
+          quizzen &amp; uitdagingen — met XP, levels en skillcards eroverheen. Je kan het langs twee
+          kanten bekijken: de demo hier op de site, of het echte portaal zoals een leerling het ziet.
+        </p>
+        <div class="grid sm:grid-cols-2 gap-4 mb-7 text-sm font-light text-gray-300">
+          <div class="flex items-start gap-2.5"><i data-lucide="route" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Leerpaden met gatekeepers</div>
+          <div class="flex items-start gap-2.5"><i data-lucide="trending-up" class="w-4 h-4 text-[#FF2EB3] shrink-0 mt-0.5"></i> XP, levels en streaks</div>
+          <div class="flex items-start gap-2.5"><i data-lucide="shield-check" class="w-4 h-4 text-[#B100FF] shrink-0 mt-0.5"></i> Veiligheid in elke stap</div>
+          <div class="flex items-start gap-2.5"><i data-lucide="badge-check" class="w-4 h-4 text-[#00AFFF] shrink-0 mt-0.5"></i> Skillcard met bewijs van groei</div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a href="https://beurdlogic-core.vercel.app" target="_blank" rel="noopener noreferrer"
+            class="btn-cosmic text-white font-semibold px-7 py-3.5 rounded-full hover:scale-105 transition inline-flex items-center justify-center gap-2">
+            <span class="flex items-center gap-2"><i data-lucide="external-link" class="w-4 h-4"></i> Open het live portaal</span>
+          </a>
+          <button onclick="goTo('portaal')"
+            class="glass outline-card text-white font-semibold px-7 py-3.5 rounded-full hover:border-[#00AFFF]/60 transition inline-flex items-center justify-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#00AFFF]"></i> Bekijk de portaal-demo
+          </button>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="absolute -inset-6 rounded-full blur-3xl opacity-25 pointer-events-none"
+             style="background:radial-gradient(circle,#00AFFF,transparent 65%)"></div>
+        <div class="relative glass outline-card rounded-2xl p-6 hover-3d" data-hover3d>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-11 h-11 rounded-xl overflow-hidden border-2 border-white/10">
+              <img class="lc-logo w-full h-full object-cover" src="" alt="">
+            </div>
+            <div>
+              <div class="font-display font-bold text-sm">Jouw traject</div>
+              <div class="text-[11px] text-gray-500">Level 7 · Mechanica</div>
+            </div>
+          </div>
+          <div class="space-y-3.5">
+            <div>
+              <div class="flex justify-between text-[11px] text-gray-400 mb-1.5"><span>Kolomboormachine</span><span>50%</span></div>
+              <div class="progress-track rounded-full h-2 overflow-hidden"><div class="progress-fill h-full rounded-full" style="width:50%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] text-gray-400 mb-1.5"><span>Veiligheid</span><span>100%</span></div>
+              <div class="progress-track rounded-full h-2 overflow-hidden"><div class="progress-fill h-full rounded-full" style="width:100%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] text-gray-400 mb-1.5"><span>Lassen</span><span>0%</span></div>
+              <div class="progress-track rounded-full h-2 overflow-hidden"><div class="progress-fill h-full rounded-full" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div class="mt-5 pt-5 border-t border-white/10 flex items-center justify-between">
+            <span class="text-[11px] text-gray-500 uppercase tracking-wider">XP deze week</span>
+            <span class="font-display font-bold text-[#FF2EB3]">+340</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- speelbare apps -->
+<section class="relative z-10 px-5 pt-12 pb-6 max-w-6xl mx-auto">
+  <div class="text-center mb-11 scroll-fade">
+    <div class="flex items-center gap-3 mb-5 justify-center">
+      <div class="h-px w-12 bg-gradient-to-r from-transparent to-[#FF2EB3]"></div>
+      <span class="text-xs font-semibold uppercase tracking-[0.25em] text-[#FF2EB3]">7 apps · speelbaar in je browser</span>
+      <div class="h-px w-12 bg-gradient-to-l from-transparent to-[#00AFFF]"></div>
+    </div>
+    <h2 class="font-display text-3xl md:text-5xl font-bold">Speelbare demo's</h2>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="appGrid">
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="play-tile h-40 bg-gradient-to-br from-[#00AFFF]/25 to-[#B100FF]/10 flex items-center justify-center relative cursor-pointer"
+           onclick="openApp('apps/mission-iron-drill.html','Missie: De IJzeren Boor')">
+        <i data-lucide="drill" class="w-16 h-16 text-[#00AFFF] opacity-70"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#00AFFF]">VERHAALMISSIE</span>
+        <span class="play-badge"><i data-lucide="play-circle" class="w-14 h-14 text-white"></i></span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-2">Missie: De IJzeren Boor</h3>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-1">
+          Kies je avatar en werk 6 checkpoints af aan de kolomboormachine. Fouten tellen mee —
+          er zijn 4 verschillende eindes, en één beslissing gooit je er meteen uit.
+        </p>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
+          <span class="chip">Mechanica</span><span class="chip">Veiligheid</span>
+        </div>
+        <button onclick="openApp('apps/mission-iron-drill.html','Missie: De IJzeren Boor')"
+          class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Speel nu</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="play-tile h-40 bg-gradient-to-br from-[#FF2EB3]/25 to-[#B100FF]/10 flex items-center justify-center relative cursor-pointer"
+           onclick="openApp('apps/code-rood-survival.html','Code Rood Survival')">
+        <i data-lucide="siren" class="w-16 h-16 text-[#FF2EB3] opacity-70"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#FF2EB3]">BOSS RUSH</span>
+        <span class="play-badge"><i data-lucide="play-circle" class="w-14 h-14 text-white"></i></span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-2">Code Rood Survival</h3>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-1">
+          20 levels veiligheidsvragen met HP, XP en streaks. Verkeerd antwoord kost leven.
+          Begint met een comic-intro, eindigt met wie het haalt.
+        </p>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
+          <span class="chip">Veiligheid</span><span class="chip">20 levels</span>
+        </div>
+        <button onclick="openApp('apps/code-rood-survival.html','Code Rood Survival')"
+          class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Speel nu</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="play-tile h-40 bg-gradient-to-br from-[#B100FF]/25 to-[#00AFFF]/10 flex items-center justify-center relative cursor-pointer"
+           onclick="openApp('apps/neon-arsenal.html','Neon Arsenal: Loadout')">
+        <i data-lucide="wrench" class="w-16 h-16 text-[#B100FF] opacity-70"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#c9a3ff]">LOADOUT</span>
+        <span class="play-badge"><i data-lucide="play-circle" class="w-14 h-14 text-white"></i></span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-2">Neon Arsenal: Loadout</h3>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-1">
+          Kies je personage en stel je gereedschapsloadout samen. Je typt zelf de antwoorden —
+          met spelfouttolerantie, want het gaat om het gereedschap, niet om de spelling.
+        </p>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
+          <span class="chip">Gereedschap</span><span class="chip">Open vraag</span>
+        </div>
+        <button onclick="openApp('apps/neon-arsenal.html','Neon Arsenal: Loadout')"
+          class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Speel nu</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="play-tile h-40 bg-gradient-to-br from-[#00AFFF]/25 to-[#FF2EB3]/10 flex items-center justify-center relative cursor-pointer"
+           onclick="openApp('apps/vti-shift.html','VTI-Simulator: Survive the Shift')">
+        <i data-lucide="hard-hat" class="w-16 h-16 text-[#00AFFF] opacity-70"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#00AFFF]">SIMULATOR</span>
+        <span class="play-badge"><i data-lucide="play-circle" class="w-14 h-14 text-white"></i></span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-2">VTI-Simulator: Survive the Shift</h3>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-1">
+          Overleef een shift in de werkplaats: 18 keuzes rond werkkledij en machineveiligheid,
+          fullscreen en zonder ontsnappingsroute.
+        </p>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
+          <span class="chip">Veiligheid</span><span class="chip">18 vragen</span>
+        </div>
+        <button onclick="openApp('apps/vti-shift.html','VTI-Simulator: Survive the Shift')"
+          class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Speel nu</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="play-tile h-40 bg-gradient-to-br from-[#FF2EB3]/25 to-[#00AFFF]/10 flex items-center justify-center relative cursor-pointer"
+           onclick="openApp('apps/candy-heist.html','De Grote Werkplaats-Snoepkraak')">
+        <i data-lucide="candy" class="w-16 h-16 text-[#FF2EB3] opacity-70"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#FF2EB3]">HEIST</span>
+        <span class="play-badge"><i data-lucide="play-circle" class="w-14 h-14 text-white"></i></span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-2">De Grote Werkplaats-Snoepkraak</h3>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-1">
+          Een kraak die alleen lukt als je je gereedschap kent. 18 vragen, verpakt in een verhaal
+          waar leerlingen in blijven hangen.
+        </p>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
+          <span class="chip">Gereedschap</span><span class="chip">Verhaal</span>
+        </div>
+        <button onclick="openApp('apps/candy-heist.html','De Grote Werkplaats-Snoepkraak')"
+          class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Speel nu</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="play-tile h-40 bg-gradient-to-br from-[#B100FF]/25 to-[#FF2EB3]/10 flex items-center justify-center relative cursor-pointer"
+           onclick="openApp('apps/pictogrammen-quiz.html','Spot de Pictogram')">
+        <i data-lucide="triangle-alert" class="w-16 h-16 text-[#c9a3ff] opacity-70"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#c9a3ff]">3 STRIKES</span>
+        <span class="play-badge"><i data-lucide="play-circle" class="w-14 h-14 text-white"></i></span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-2">Spot de Pictogram</h3>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-1">
+          Herken het veiligheidspictogram en zeg of typ wat het betekent. Drie fouten na elkaar
+          en je bent eruit. Licht bestand, start meteen.
+        </p>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
+          <span class="chip">Pictogrammen</span><span class="chip">Spreken of typen</span>
+        </div>
+        <button onclick="openApp('apps/pictogrammen-quiz.html','Spot de Pictogram')"
+          class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Speel nu</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="glass-card outline-card sheen rounded-3xl overflow-hidden flex flex-col tilt">
+      <div class="play-tile h-40 bg-gradient-to-br from-[#00AFFF]/25 to-[#B100FF]/10 flex items-center justify-center relative cursor-pointer"
+           onclick="openApp('apps/workshop-arena.html','Workshop Arena — Logic Missie')">
+        <i data-lucide="swords" class="w-16 h-16 text-[#00AFFF] opacity-70"></i>
+        <span class="absolute top-3 left-3 badge-pill text-[10px] font-semibold px-2.5 py-1 rounded-full text-[#00AFFF]">ARENA</span>
+        <span class="play-badge"><i data-lucide="play-circle" class="w-14 h-14 text-white"></i></span>
+      </div>
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="font-display font-bold mb-2">Workshop Arena — Logic Missie</h3>
+        <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-1">
+          De arena-variant uit de Workshop Arena-reeks: koppelen, sorteren en herkennen
+          onder tijdsdruk. Klein bestand, snel op te starten in de klas.
+        </p>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
+          <span class="chip">Werkplaats</span><span class="chip">Snel</span>
+        </div>
+        <button onclick="openApp('apps/workshop-arena.html','Workshop Arena — Logic Missie')"
+          class="btn-cosmic rounded-xl py-3 text-sm font-semibold text-white inline-flex items-center justify-center gap-2">
+          <span class="flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Speel nu</span>
+        </button>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="glass-card outline-card rounded-2xl p-6 mt-8 flex items-start gap-4 scroll-fade">
+    <i data-lucide="shield-check" class="w-6 h-6 text-[#00AFFF] shrink-0 mt-0.5"></i>
+    <p class="text-sm text-gray-400 font-light leading-relaxed">
+      <span class="text-gray-200 font-medium">Publieke demo's.</span> Deze versies bewaren niets en
+      versturen niets: geen account, geen leaderboard, geen namen in een database. In de klasversie
+      wordt voortgang wél bijgehouden — dat gebeurt achter een login, niet op een open website.
+    </p>
+  </div>
+
+  <div class="text-center mt-11 mb-24 scroll-fade">
+    <p class="text-gray-400 font-light mb-5">Zo'n app rond jouw machine, jouw werkplaats of jouw vak?</p>
+    <button onclick="goTo('home','contact')"
+      class="btn-cosmic text-white font-semibold px-8 py-4 rounded-full hover:scale-105 transition inline-flex items-center gap-2">
+      <span class="flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5"></i> Laat er één bouwen</span>
+    </button>
+  </div>
+</section>
+
+</div>
+
+
+<!-- ============ PAGE: VIDEO ============ -->
+<div id="page-video" class="page">
+
+<section class="relative z-10 pt-36 pb-14 px-5">
+  <div class="max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6 scroll-fade">
+      <i data-lucide="clapperboard" class="w-4 h-4 text-[#FF2EB3]"></i>
+      <span class="text-xs font-medium uppercase tracking-[0.2em] text-gray-300">Video &amp; media</span>
+    </div>
+    <h1 class="font-display font-black text-4xl md:text-6xl leading-[1.15] mb-7 scroll-fade">
+      Filmpjes met <span class="grad-text">Madness Juice</span>
+    </h1>
+    <p class="text-lg text-gray-300/90 max-w-2xl mx-auto font-light leading-relaxed scroll-fade">
+      "Ik doe gevaarlijke dingen na, zodat jij ze niet hoeft te doen." Madness Juice en zijn crew
+      lopen door het hele lesmateriaal — hier zie je ze in actie.
+    </p>
+  </div>
+</section>
+
+<section class="relative z-10 px-5 pb-8 max-w-5xl mx-auto">
+  <div class="glass-card outline-card rounded-3xl p-6 md:p-9 tilt">
+    <div class="grid md:grid-cols-[340px_1fr] gap-8 md:gap-10 items-center">
+      <div class="vid-frame vid-portrait w-full">
+        <video controls preload="none" poster="videos/madness-en-vrienden.jpg" playsinline>
+          <source src="videos/madness-en-vrienden.mp4" type="video/mp4">
+          Je browser kan deze video niet afspelen.
+        </video>
+      </div>
+      <div>
+        <div class="flex items-center gap-3 mb-5">
+          <span class="badge-pill rounded-full px-3 py-1 text-[11px] font-semibold text-[#FF2EB3]">UITGELICHT</span>
+          <span class="text-xs text-gray-500">54 sec · staand formaat</span>
+        </div>
+        <h2 class="font-display text-2xl md:text-3xl font-bold mb-4">Madness &amp; vrienden</h2>
+        <p class="text-gray-300/90 font-light leading-relaxed mb-6">
+          De crew samen in beeld: Madness Juice, Fien, Juan en Navid — de personages die in de lessen,
+          de apps en de leerpaden terugkomen. Gefilmd in staand formaat, zoals leerlingen het gewoon zijn.
+        </p>
+        <button onclick="goTo('universum')"
+          class="glass outline-card text-white font-semibold px-6 py-3 rounded-full hover:border-[#FF2EB3]/60 transition inline-flex items-center gap-2">
+          <i data-lucide="users" class="w-4 h-4 text-[#FF2EB3]"></i> Leer de crew kennen
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="relative z-10 px-5 pb-10 max-w-6xl mx-auto">
+  <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+
+    <article class="glass-card outline-card rounded-3xl p-5 flex flex-col tilt">
+      <div class="vid-frame mb-4">
+        <video controls preload="none" poster="videos/madness-veiligheid.jpg" playsinline>
+          <source src="videos/madness-veiligheid.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="badge-pill rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-[#00AFFF]">VEILIGHEID</span>
+        <span class="text-[11px] text-gray-500">1 min 07</span>
+      </div>
+      <h3 class="font-display font-bold mb-2">Madness Juice — veiligheid</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed flex-1">
+        De langste film van de reeks, gebruikt bij het veiligheidsmateriaal. Chaos in beeld,
+        ernst in de boodschap.
+      </p>
+    </article>
+
+    <article class="glass-card outline-card rounded-3xl p-5 flex flex-col tilt">
+      <div class="vid-frame mb-4">
+        <video controls preload="none" poster="videos/madness-juice.jpg" playsinline>
+          <source src="videos/madness-juice.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="badge-pill rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-[#FF2EB3]">PERSONAGE</span>
+        <span class="text-[11px] text-gray-500">8 sec</span>
+      </div>
+      <h3 class="font-display font-bold mb-2">Madness Juice — intro</h3>
+      <p class="text-sm text-gray-400 font-light leading-relaxed flex-1">
+        Kort fragment waarmee Madness Juice een les of missie opent. Precies lang genoeg om
+        een klas stil te krijgen.
+      </p>
+    </article>
+
+
+  </div>
+</section>
+
+<section class="relative z-10 px-5 pb-24 max-w-5xl mx-auto">
+  <div class="glass-card outline-card rounded-3xl p-8 md:p-10 text-center scroll-fade">
+    <i data-lucide="users" class="w-10 h-10 text-[#B100FF] mx-auto mb-5"></i>
+    <h2 class="font-display text-2xl font-bold mb-3">Wie zijn die gasten?</h2>
+    <p class="text-gray-400 font-light leading-relaxed max-w-2xl mx-auto mb-7">
+      Madness Juice, Fien, Juan en Navid zijn geen versiering. Ze dragen de verhaallijn door
+      het lesmateriaal heen en maken techniek herkenbaar voor wie afhaakt bij een handboek.
+    </p>
+    <button onclick="goTo('universum')"
+      class="glass outline-card text-white font-semibold px-8 py-3.5 rounded-full hover:border-[#B100FF]/60 transition inline-flex items-center gap-2">
+      <i data-lucide="sparkles" class="w-4 h-4 text-[#B100FF]"></i> Naar het universum
+    </button>
+  </div>
+</section>
+
+</div>
+
 </main>
 
 <!-- FOOTER -->
@@ -1253,6 +2420,28 @@
   </div>
 </footer>
 
+<!-- APP-PODIUM: speelt een demo fullscreen af -->
+<div id="appStage" role="dialog" aria-modal="true" aria-label="Speelbare demo">
+  <div id="appStageBar">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-8 h-8 rounded-lg overflow-hidden border-2 border-white/10 shrink-0">
+        <img class="lc-logo w-full h-full object-cover" src="" alt="">
+      </div>
+      <span id="appStageTitle" class="font-display font-bold text-sm truncate">Demo</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button onclick="restartApp()" class="glass outline-card rounded-lg px-3 py-2 text-xs font-semibold hover:border-[#00AFFF]/60 transition inline-flex items-center gap-1.5">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Opnieuw</span>
+      </button>
+      <button onclick="closeApp()" class="btn-cosmic rounded-lg px-4 py-2 text-xs font-semibold text-white inline-flex items-center gap-1.5">
+        <span class="flex items-center gap-1.5"><i data-lucide="x" class="w-3.5 h-3.5"></i> Sluiten</span>
+      </button>
+    </div>
+  </div>
+  <iframe id="appStageFrame" title="Speelbare demo" src="about:blank"
+          allow="microphone; autoplay; fullscreen"></iframe>
+</div>
+
 <script>
   lucide.createIcons();
 
@@ -1267,12 +2456,27 @@
     a.addEventListener('click', () => document.getElementById('mobileMenu').classList.add('hidden'));
   });
 
-  // ROUTING
-  function goTo(page, anchor) {
+  // ROUTING — met deeplinks (#speelplaats, #video, ...)
+  const PAGES = ['home','demos','video','portaal','vacatures','materiaal','skillcard','portfolio','universum'];
+
+  function goTo(page, anchor, fromHash) {
+    if (!PAGES.includes(page)) page = 'home';
+    const target = document.getElementById('page-' + page);
+    if (!target) return;
+
+    closeApp();
+
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + page).classList.add('active');
+    target.classList.add('active');
+
     document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
     document.querySelectorAll('.nav-link[data-page="' + page + '"]').forEach(n => n.classList.add('active'));
+
+    if (!fromHash) {
+      const hash = '#' + page + (anchor ? '/' + anchor : '');
+      if (location.hash !== hash) history.pushState(null, '', hash);
+    }
+
     window.scrollTo({top:0, behavior:'instant'});
     setTimeout(() => {
       if (anchor) {
@@ -1281,9 +2485,18 @@
       }
       lucide.createIcons();
       reobserveFades();
+      updateDepth();
     }, 50);
   }
   window.goTo = goTo;
+
+  function routeFromHash() {
+    const raw = (location.hash || '').replace(/^#/, '');
+    if (!raw) { goTo('home', null, true); return; }
+    const [page, anchor] = raw.split('/');
+    goTo(page, anchor || null, true);
+  }
+  window.addEventListener('popstate', routeFromHash);
 
   // contact form
   document.getElementById('contactForm').addEventListener('submit', function(e) {
@@ -1303,11 +2516,12 @@
         if (entry.isIntersecting) entry.target.classList.add('in-view');
       });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+    document.querySelectorAll('.scroll-fade, .tilt').forEach(el => observer.observe(el));
   }
   reobserveFades();
 
   // starfield canvas
+  var starsPaused = false;   // gezet door de app-launcher; moet hier al bestaan
   const canvas = document.getElementById('stars');
   const ctx = canvas.getContext('2d');
   let stars = [];
@@ -1337,6 +2551,7 @@
 
   let t = 0;
   function drawStars() {
+    if (starsPaused) { requestAnimationFrame(drawStars); return; }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     t += 0.01;
     for (const s of stars) {
@@ -1351,7 +2566,119 @@
   drawStars();
 
   window.addEventListener('resize', () => { resize(); initStars(); });
+
+  /* ══════════════════════════════════════════════════════
+     3D-SCROLL — diepte zonder bibliotheek, zonder ruk
+     ══════════════════════════════════════════════════════ */
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let depthEls = [];
+
+  function collectDepth() {
+    depthEls = Array.from(document.querySelectorAll('[data-depth]'));
+  }
+  collectDepth();
+
+  function updateDepth() {
+    if (reduceMotion) return;
+    const vh = window.innerHeight;
+    for (const el of depthEls) {
+      if (!el.offsetParent && el.offsetHeight === 0) continue;
+      const r = el.getBoundingClientRect();
+      if (r.bottom < -vh || r.top > vh * 2) continue;
+      const factor = parseFloat(el.dataset.depth) || 0;
+      const fromCenter = (r.top + r.height / 2) - vh / 2;
+      el.style.setProperty('--dy', (fromCenter * factor).toFixed(1) + 'px');
+    }
+  }
+
+  const progressBar = document.getElementById('scrollProgress');
+  function updateProgress() {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = h > 0 ? (window.scrollY / h) * 100 : 0;
+    progressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+  }
+
+  let ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      updateDepth();
+      updateProgress();
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', () => { collectDepth(); updateDepth(); updateProgress(); });
+  updateDepth(); updateProgress();
+
+  /* muis-parallax: kaarten kantelen licht mee met de cursor */
+  if (!reduceMotion && window.matchMedia('(hover: hover)').matches) {
+    document.addEventListener('mousemove', (e) => {
+      const els = document.querySelectorAll('[data-hover3d]');
+      els.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0) return;
+        const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+        const dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+        if (Math.abs(dx) > 2.5 || Math.abs(dy) > 2.5) {
+          el.style.transform = '';
+          return;
+        }
+        el.style.transform =
+          'perspective(900px) rotateY(' + (dx * 5).toFixed(2) + 'deg) rotateX(' + (-dy * 5).toFixed(2) + 'deg)';
+      });
+    }, { passive: true });
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SPEELPLAATS — demo's fullscreen openen
+     ══════════════════════════════════════════════════════ */
+
+  const stage      = document.getElementById('appStage');
+  const stageFrame = document.getElementById('appStageFrame');
+  const stageTitle = document.getElementById('appStageTitle');
+  let currentApp = null;
+
+  function openApp(src, title) {
+    currentApp = src;
+    stageTitle.textContent = title || 'Demo';
+    stageFrame.src = src;
+    stage.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    starsPaused = true;                 // scheelt rekenwerk terwijl de app draait
+    lucide.createIcons();
+  }
+  window.openApp = openApp;
+
+  function closeApp() {
+    if (!stage.classList.contains('open')) return;
+    stage.classList.remove('open');
+    stageFrame.src = 'about:blank';     // stopt geluid en spel meteen
+    document.body.style.overflow = '';
+    starsPaused = false;
+    currentApp = null;
+  }
+  window.closeApp = closeApp;
+
+  function restartApp() {
+    if (currentApp) stageFrame.src = currentApp;
+  }
+  window.restartApp = restartApp;
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeApp();
+  });
+
+  /* ══════════════════════════════════════════════════════
+     START
+     ══════════════════════════════════════════════════════ */
+
+  if (location.hash) routeFromHash(); else goTo('home', null, true);
+  lucide.createIcons();
 </script>
+
 
 </body>
 </html>
