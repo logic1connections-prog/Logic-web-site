@@ -1,0 +1,32 @@
+# Logic Connections — logic-connections.be (Hostinger / Apache)
+# Statische site + contact.php. Navigatie draait op #-links, dus geen rewrites nodig.
+
+DirectoryIndex index.html
+
+# ── Compressie ──────────────────────────────────────────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ── Cache ───────────────────────────────────────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # index.html kort: zo zie je een update meteen na het uploaden
+  ExpiresByType text/html "access plus 10 minutes"
+  ExpiresByType video/mp4 "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+</IfModule>
+
+# ── Beveiliging ─────────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+Options -Indexes
+
+ErrorDocument 404 /index.html

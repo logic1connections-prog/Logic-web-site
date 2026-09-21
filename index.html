@@ -701,7 +701,7 @@
     <p class="text-gray-400 font-light">Scholen, leerkrachten en partners — neem contact op.</p>
   </div>
 
-  <form id="contactForm" class="glass-card rounded-3xl p-9 space-y-5 scroll-fade">
+  <form id="contactForm" class="glass-card outline-card rounded-3xl p-9 space-y-5 scroll-fade relative">
     <div class="grid sm:grid-cols-2 gap-5">
       <div>
         <label class="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Naam</label>
@@ -724,12 +724,24 @@
       <textarea required name="bericht" rows="4" placeholder="Vertel ons over jouw klas of vraag..."
         class="w-full bg-black/30 border border-white/10 focus:border-[#2BC8FF] rounded-xl px-4 py-3 outline-none transition text-sm resize-none"></textarea>
     </div>
-    <button type="submit"
+    <!-- honeypot: onzichtbaar voor mensen, bots vullen hem wel in -->
+    <div class="absolute opacity-0 pointer-events-none" aria-hidden="true" style="left:-9999px;top:-9999px">
+      <label>Laat dit veld leeg
+        <input type="text" name="website" tabindex="-1" autocomplete="off">
+      </label>
+    </div>
+    <input type="hidden" name="ts" id="formTs" value="">
+
+    <button type="submit" id="formSubmit"
       class="w-full btn-cosmic text-white font-semibold py-4 rounded-xl glow-pink hover:scale-[1.02] transition flex items-center justify-center gap-2">
       <i data-lucide="send" class="w-5 h-5"></i> Verstuur bericht
     </button>
-    <p id="formStatus" class="hidden text-center font-medium text-[#2BC8FF] flex items-center justify-center gap-2">
-      <i data-lucide="check-circle" class="w-5 h-5"></i> Bericht verzonden! We nemen snel contact op.
+
+    <div id="formStatus" class="hidden text-center font-medium"></div>
+
+    <p class="text-center text-xs text-gray-500 font-light pt-1">
+      Liever rechtstreeks mailen?
+      <a href="mailto:birger@logic-connections.be" class="text-[#00AFFF] hover:underline">birger@logic-connections.be</a>
     </p>
   </form>
 </section>
@@ -2498,13 +2510,48 @@
   }
   window.addEventListener('popstate', routeFromHash);
 
-  // contact form
-  document.getElementById('contactForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+  // contact form — verstuurt echt via contact.php
+  const contactForm = document.getElementById('contactForm');
+  const formTs      = document.getElementById('formTs');
+  if (formTs) formTs.value = Math.floor(Date.now() / 1000);
+
+  function toonStatus(tekst, gelukt) {
     const status = document.getElementById('formStatus');
-    status.classList.remove('hidden');
-    this.reset();
-    setTimeout(() => status.classList.add('hidden'), 4000);
+    status.className = 'text-center font-medium ' + (gelukt ? 'text-[#00AFFF]' : 'text-[#FF2EB3]');
+    status.innerHTML = gelukt
+      ? '✓ ' + tekst
+      : tekst + ' <a href="mailto:birger@logic-connections.be" class="underline">Mail rechtstreeks →</a>';
+  }
+
+  contactForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const knop = document.getElementById('formSubmit');
+    const oud  = knop.innerHTML;
+    knop.disabled = true;
+    knop.innerHTML = 'Versturen…';
+
+    try {
+      const antwoord = await fetch('contact.php', {
+        method: 'POST',
+        body: new FormData(contactForm)
+      });
+      const data = await antwoord.json();
+
+      if (antwoord.ok && data.ok) {
+        toonStatus('Bericht verzonden. Je hoort snel van me.', true);
+        contactForm.reset();
+        if (formTs) formTs.value = Math.floor(Date.now() / 1000);
+      } else {
+        toonStatus(data.bericht || 'Er liep iets mis.', false);
+      }
+    } catch (err) {
+      // Geen PHP beschikbaar (bv. op de Vercel-testversie) of geen netwerk.
+      toonStatus('Verzenden lukt hier niet.', false);
+    } finally {
+      knop.disabled = false;
+      knop.innerHTML = oud;
+      lucide.createIcons();
+    }
   });
 
   // scroll fade-in (re-observable for dynamically shown pages)
